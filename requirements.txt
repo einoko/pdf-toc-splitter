@@ -1,0 +1,6 @@
+click==8.0.3
+lxml==4.7.1
+Pillow==8.4.0
+PyMuPDF==1.19.3
+python-slugify==5.0.2
+text-unidecode==1.3
