@@ -19,7 +19,7 @@ There are four options:
 - `--simulate`: Simulates the split. Prints the filenames, but does not create any files. Useful when checking if the options have been set correctly. 
 - `--depth INTEGER`: The level of depth at which the splits will occur. See figure 1 for a visual explanation. Default value is set to 1.
 - `--regex TEXT`: Selects outline items that match a RegEx pattern. For example `--regex "^Chapter"` will only select outline items that start with the string `Chapter`.
-- `--overlap`: Overlaps split points. By default, if **Chapter 1** starts at page 1 and **Chapter 2** starts at page 10, `Chapter 1.pdf` will contain pages 1–9, and `Chapter 2.pdf` will contain pages 10–.... By setting the `--overlap` option, `Chapter 1.pdf` will now contain pages 1–10, and `Chapter 2.pdf` will contain pages 10..., etc. This is a useful option, if a section can start in the middle of the page. 
+- `--overlap`: Overlaps split points. By default, if **Chapter 1** starts at page 1 and **Chapter 2** starts at page 10, `Chapter 1.pdf` will contain pages 1–9, and `Chapter 2.pdf` will contain pages 10–.... By setting the `--overlap` option, `Chapter 1.pdf` will now contain pages 1–10, and `Chapter 2.pdf` will contain pages 10..., etc. This is a useful option, if a section can start in the middle of a page. 
 
 #### Figure 1: Depth of Table of Contents
 
