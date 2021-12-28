@@ -4,7 +4,6 @@ import sys
 import click
 import fitz
 import unicodedata
-from slugify import slugify
 
 
 @click.command()
@@ -67,25 +66,25 @@ def get_page_ranges(pdf, toc, depth, overlap):
     page_ranges = []
 
     for i, item in enumerate(filtered_toc):
+        name = item[1]
+
+        # Handle empty outline entries
+        if len(name) == 0:
+            name = "Untitled Section"
+
+        # Handle duplicate outline entries
+        if len([item for item in page_ranges if name is item[0]]) > 0:
+            name += " {}".format(
+                len([item for item in page_ranges if name in item[0]]) + 1
+            )
+
         if item[0] == depth and i < len(filtered_toc) - 1:
-            name = item[1]
-
-            # Handle empty outline entries
-            if len(name) == 0:
-                name = "Untitled"
-
-            # Handle duplicate outline entries
-            if len([item for item in page_ranges if name == item[0]]) > 0:
-                name += "_{}".format(
-                    len([item for item in page_ranges if name is item]) + 2
-                )
-
             if overlap:
                 page_ranges.append([name, (item[2], filtered_toc[i + 1][2])])
             else:
                 page_ranges.append([name, (item[2], filtered_toc[i + 1][2] - 1)])
         elif item[0] == depth and i == len(filtered_toc) - 1:
-            page_ranges.append([item[1], (item[2], pdf.page_count)])
+            page_ranges.append([name, (item[2], pdf.page_count - 1)])
 
     return page_ranges
 
@@ -96,7 +95,7 @@ def split_pdf(pdf, page_ranges):
         document.insert_pdf(
             pdf, from_page=range[1][0], to_page=range[1][1], links=True, annots=True
         )
-        filename = "{}.pdf".format(slugify(range[0]))
+        filename = "{}.pdf".format(safe_filename(range[0]))
         document.save(filename)
         print("Created file {}".format(filename))
 
@@ -105,11 +104,22 @@ def simulate_toc_split(page_ranges):
     print("With current options, the following PDF files would be created.\n")
 
     for item in page_ranges:
-        print(
-            "{}.pdf (contains pages {}–{})".format(
-                slugify(item[0]), item[1][0], item[1][1]
+        if item[1][0] == item[1][1]:
+            print(
+                "– {}.pdf (contains page {})".format(safe_filename(item[0]), item[1][0])
             )
-        )
+        else:
+            print(
+                "– {}.pdf (contains pages {}–{})".format(
+                    safe_filename(item[0]), item[1][0], item[1][1]
+                )
+            )
+
+
+def safe_filename(filename):
+    return "".join(
+        [c for c in filename if c.isalpha() or c.isdigit() or c == " "]
+    ).rstrip()
 
 
 def filter_by_regex(input_list, regex):
