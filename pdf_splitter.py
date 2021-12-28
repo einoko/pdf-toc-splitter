@@ -27,14 +27,14 @@ def main(simulate, depth, regex, overlap, file):
         sys.exit()
 
     toc = [
-        [
-            x[0],
-            unicodedata.normalize(
+        {
+            "level": x[0],
+            "name": unicodedata.normalize(
                 "NFKD",
                 x[1].strip().replace("\r", " ").replace("\t", " ").replace("\n", " "),
             ),
-            x[2] - 1,
-        ]
+            "page": x[2] - 1,
+        }
         for x in toc
     ]
 
@@ -66,36 +66,52 @@ def get_page_ranges(pdf, toc, depth, overlap):
     page_ranges = []
 
     for i, item in enumerate(filtered_toc):
-        name = item[1]
+        name = item["name"]
 
         # Handle empty outline entries
         if len(name) == 0:
             name = "Untitled Section"
 
         # Handle duplicate outline entries
-        if len([item for item in page_ranges if name is item[0]]) > 0:
+        if len([item for item in page_ranges if name is item["name"]]) > 0:
             name += " {}".format(
-                len([item for item in page_ranges if name in item[0]]) + 1
+                len([item for item in page_ranges if name in item["name"]]) + 1
             )
 
-        if item[0] == depth and i < len(filtered_toc) - 1:
+        if item["level"] == depth and i < len(filtered_toc) - 1:
             if overlap:
-                page_ranges.append([name, (item[2], filtered_toc[i + 1][2])])
+                page_ranges.append(
+                    {
+                        "name": name,
+                        "page_range": (item["page"], filtered_toc[i + 1]["page"]),
+                    }
+                )
             else:
-                page_ranges.append([name, (item[2], filtered_toc[i + 1][2] - 1)])
-        elif item[0] == depth and i == len(filtered_toc) - 1:
-            page_ranges.append([name, (item[2], pdf.page_count - 1)])
+                page_ranges.append(
+                    {
+                        "name": name,
+                        "page_range": (item["page"], filtered_toc[i + 1]["page"] - 1),
+                    }
+                )
+        elif item["level"] == depth and i == len(filtered_toc) - 1:
+            page_ranges.append(
+                {"name": name, "page_range": (item["page"], pdf.page_count - 1)}
+            )
 
     return page_ranges
 
 
 def split_pdf(pdf, page_ranges):
-    for range in page_ranges:
+    for page_range in page_ranges:
         document = fitz.open()
         document.insert_pdf(
-            pdf, from_page=range[1][0], to_page=range[1][1], links=True, annots=True
+            pdf,
+            from_page=page_range["page_range"][0],
+            to_page=page_range["page_range"][1],
+            links=True,
+            annots=True,
         )
-        filename = "{}.pdf".format(safe_filename(range[0]))
+        filename = "{}.pdf".format(safe_filename(page_range["name"]))
         document.save(filename)
         print("Created file {}".format(filename))
 
@@ -104,14 +120,18 @@ def simulate_toc_split(page_ranges):
     print("With current options, the following PDF files would be created.\n")
 
     for item in page_ranges:
-        if item[1][0] == item[1][1]:
+        if item["page_range"][0] == item["page_range"][1]:
             print(
-                "– {}.pdf (contains page {})".format(safe_filename(item[0]), item[1][0])
+                "– {}.pdf (contains page {})".format(
+                    safe_filename(item["name"]), item["page_range"][0]
+                )
             )
         else:
             print(
                 "– {}.pdf (contains pages {}–{})".format(
-                    safe_filename(item[0]), item[1][0], item[1][1]
+                    safe_filename(item["name"]),
+                    item["page_range"][0],
+                    item["page_range"][1],
                 )
             )
 
@@ -123,11 +143,11 @@ def safe_filename(filename):
 
 
 def filter_by_regex(input_list, regex):
-    return [item for item in input_list if re.search(r"{}".format(regex), item[0])]
+    return [item for item in input_list if re.search(r"{}".format(regex), item["name"])]
 
 
 def get_n_levels(input_list, level):
-    return [item for item in input_list if item[0] <= level]
+    return [item for item in input_list if item["level"] <= level]
 
 
 if __name__ == "__main__":
