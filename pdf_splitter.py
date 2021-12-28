@@ -16,15 +16,15 @@ import unicodedata
 @click.argument("file")
 def main(simulate, depth, regex, overlap, file):
     if not os.path.exists(file):
-        print("File {} does not exist.".format(file))
-        sys.exit()
+        print("Error: File {} does not exist.".format(file))
+        sys.exit(1)
 
     pdf = fitz.open(file)
     toc = pdf.get_toc()
 
     if len(toc) == 0:
-        print("Could not read the table of contents.")
-        sys.exit()
+        print("Table of content was not found in the PDF file. Exiting.")
+        sys.exit(0)
 
     toc = [
         {
