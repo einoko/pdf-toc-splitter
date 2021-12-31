@@ -23,7 +23,7 @@ def main(simulate, depth, regex, overlap, file):
     toc = pdf.get_toc()
 
     if len(toc) == 0:
-        print("Table of content was not found in the PDF file. Exiting.")
+        print("Table of contents was not found in the PDF file. Exiting.")
         sys.exit(0)
 
     toc = [
