@@ -42,6 +42,9 @@ def main(dry_run: bool, depth: int, regex: str, overlap: bool, prefix: str, file
         else:
             print("No outline items match the current depth or RegEx.")
     else:
+        if prefix is not None:
+            prefix = safe_filename(prefix)
+
         if dry_run is True:
             dry_run_toc_split(page_ranges, prefix)
         else:
@@ -66,11 +69,14 @@ def get_toc(pdf: pypdf.PdfReader) -> List[OutlineItem]:
                 item_obj = {
                     "name": unicodedata.normalize(
                         "NFKD",
-                        item["/Title"].strip().replace("\r",
-                                                       " ").replace("\t", " ").replace("\n", " "),
+                        item["/Title"]
+                        .strip()
+                        .replace("\r", " ")
+                        .replace("\t", " ")
+                        .replace("\n", " "),
                     ),
                     "page": pdf.get_destination_page_number(item),
-                    "level": level
+                    "level": level,
                 }
 
                 if len([item for item in toc_list if item == item_obj]) == 0:
@@ -90,7 +96,9 @@ class PageRange(TypedDict):
     page_range: tuple
 
 
-def prepare_page_ranges(toc: List[OutlineItem], depth: int, regex: str, overlap: int, page_count: int) -> List[PageRange]:
+def prepare_page_ranges(
+    toc: List[OutlineItem], depth: int, regex: str, overlap: int, page_count: int
+) -> List[PageRange]:
     page_ranges = get_page_ranges(toc, depth, overlap, page_count)
 
     if regex is not None:
@@ -99,7 +107,9 @@ def prepare_page_ranges(toc: List[OutlineItem], depth: int, regex: str, overlap:
     return page_ranges
 
 
-def get_page_ranges(toc: List[OutlineItem], depth: int, overlap: bool, page_count: int) -> List[PageRange]:
+def get_page_ranges(
+    toc: List[OutlineItem], depth: int, overlap: bool, page_count: int
+) -> List[PageRange]:
     filtered_toc = get_n_levels(toc, depth)
     page_ranges = []
 
@@ -132,7 +142,7 @@ def get_page_ranges(toc: List[OutlineItem], depth: int, overlap: bool, page_coun
                             item["page"],
                             filtered_toc[i + 1]["page"] - 1
                             if filtered_toc[i + 1]["page"] > item["page"]
-                            else item["page"]
+                            else item["page"],
                         ),
                     }
                 )
@@ -147,8 +157,10 @@ def get_page_ranges(toc: List[OutlineItem], depth: int, overlap: bool, page_coun
 def split_pdf(pdf: pypdf.PdfReader, page_ranges: List[PageRange], prefix: str):
     for page_range in page_ranges:
         pdf_writer = pypdf.PdfWriter()
-        pdf_writer.append(fileobj=pdf, pages=(
-            page_range["page_range"][0], page_range["page_range"][1] + 1))
+        pdf_writer.append(
+            fileobj=pdf,
+            pages=(page_range["page_range"][0], page_range["page_range"][1] + 1),
+        )
 
         filename = f"{safe_filename(page_range['name'])}.pdf"
         if prefix is not None:
@@ -185,9 +197,7 @@ def dry_run_toc_split(page_ranges: List[PageRange], prefix: str):
 
 
 def safe_filename(filename: str) -> str:
-    return "".join(
-        c for c in filename if c.isalnum() or c in (" ", ".", "_", "-")
-    ).rstrip()
+    return "".join(c for c in filename if c.isalnum() or c in (" ", ".", "_", "-"))
 
 
 def filter_by_regex(input_list: List[PageRange], regex: str) -> List[PageRange]:
