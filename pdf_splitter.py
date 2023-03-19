@@ -14,8 +14,9 @@ import unicodedata
     "--regex", nargs=1, help="Select outline items that match a RegEx pattern"
 )
 @click.option("--overlap", is_flag=True, help="Overlap split points")
+@click.option("--prefix", nargs=1, help="Filename prefix")
 @click.argument("file")
-def main(dry_run: bool, depth: int, regex: str, overlap: bool, file: str):
+def main(dry_run: bool, depth: int, regex: str, overlap: bool, prefix: str, file: str):
     if not os.path.exists(file):
         print(f"Error: File '{file}' does not exist.")
         sys.exit(1)
@@ -42,9 +43,9 @@ def main(dry_run: bool, depth: int, regex: str, overlap: bool, file: str):
             print("No outline items match the current depth or RegEx.")
     else:
         if dry_run is True:
-            dry_run_toc_split(page_ranges)
+            dry_run_toc_split(page_ranges, prefix)
         else:
-            split_pdf(pdf, page_ranges)
+            split_pdf(pdf, page_ranges, prefix)
 
 
 class OutlineItem(TypedDict):
@@ -143,32 +144,40 @@ def get_page_ranges(toc: List[OutlineItem], depth: int, overlap: bool, page_coun
     return page_ranges
 
 
-def split_pdf(pdf: pypdf.PdfReader, page_ranges: List[PageRange]):
+def split_pdf(pdf: pypdf.PdfReader, page_ranges: List[PageRange], prefix: str):
     for page_range in page_ranges:
         pdf_writer = pypdf.PdfWriter()
         pdf_writer.append(fileobj=pdf, pages=(
             page_range["page_range"][0], page_range["page_range"][1] + 1))
-        filename = "{}.pdf".format(safe_filename(page_range["name"]))
+
+        filename = f"{safe_filename(page_range['name'])}.pdf"
+        if prefix is not None:
+            filename = f"{prefix}{filename}"
+
         output = open(filename, "wb")
         pdf_writer.write(output)
 
-        print("Created file '{}'".format(filename))
+        print(f"Created file '{filename}'")
 
 
-def dry_run_toc_split(page_ranges: List[PageRange]):
+def dry_run_toc_split(page_ranges: List[PageRange], prefix: str):
     print("With current options, the following PDF files would be created.\n")
 
     for item in page_ranges:
+        filename = safe_filename(item["name"])
+        if prefix is not None:
+            filename = f"{prefix}{filename}"
+
         if item["page_range"][0] == item["page_range"][1]:
             print(
                 "– {}.pdf (contains page {})".format(
-                    safe_filename(item["name"]), item["page_range"][0] + 1
+                    filename, item["page_range"][0] + 1
                 )
             )
         else:
             print(
                 "– {}.pdf (contains pages {}–{})".format(
-                    safe_filename(item["name"]),
+                    filename,
                     item["page_range"][0] + 1,
                     item["page_range"][1] + 1,
                 )
