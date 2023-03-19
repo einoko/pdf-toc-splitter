@@ -14,7 +14,7 @@ pip install -r requirements.txt
 python pdf_splitter.py <OPTIONS> file.pdf
 ```
 
-There are four options:
+There are five options:
 
 - `--dry-run`: Simulates the split. Prints the filenames, but does not create any files. Useful when checking if the options have been set correctly. 
 - `--depth INTEGER`: The level of depth at which the splits will occur. See figure 1 for a visual explanation. Default value is set to 1.
