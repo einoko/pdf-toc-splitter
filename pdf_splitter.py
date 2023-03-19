@@ -19,13 +19,13 @@ import unicodedata
 def main(dry_run: bool, depth: int, regex: str, overlap: bool, prefix: str, file: str):
     if not os.path.exists(file):
         print(f"Error: File '{file}' does not exist.")
-        sys.exit(1)
+        sys.exit(0)
 
     try:
         pdf = pypdf.PdfReader(file)
     except:
         print("Error: File is not a valid PDF.")
-        sys.exit(1)
+        sys.exit(0)
 
     if len(pdf.outline) == 0:
         print("Error: File does not contain an outline.")
@@ -159,7 +159,8 @@ def split_pdf(pdf: pypdf.PdfReader, page_ranges: List[PageRange], prefix: str):
         pdf_writer = pypdf.PdfWriter()
         pdf_writer.append(
             fileobj=pdf,
-            pages=(page_range["page_range"][0], page_range["page_range"][1] + 1),
+            pages=(page_range["page_range"][0],
+                   page_range["page_range"][1] + 1),
         )
 
         filename = f"{safe_filename(page_range['name'])}.pdf"
