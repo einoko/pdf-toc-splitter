@@ -2,13 +2,15 @@
 
 Command line tool that splits a PDF file by its table of contents. Written in Python.
 
-### Installation
+<img src="pdf_toc_splitter_image.png" style="max-width: 100%">
+
+## Installation
 First, make sure you have the required libraries installed.
 ```bash
 pip install -r requirements.txt
 ```
 
-### Splitting a PDF
+## Splitting a PDF
 
 ```bash
 python pdf_splitter.py <OPTIONS> file.pdf
@@ -22,10 +24,10 @@ There are five options:
 - `--overlap`: Overlaps split points. By default, if **Chapter 1** starts at page 1 and **Chapter 2** starts at page 10, `Chapter 1.pdf` will contain pages 1–9, and `Chapter 2.pdf` will contain pages 10–.... By including the `--overlap` option, `Chapter 1.pdf` will now contain pages 1–10, and `Chapter 2.pdf` will contain pages 10..., etc. This is a useful option, if a section can start in the middle of a page. 
 - `--prefix TEXT`: Adds a prefix to the output filenames. For example, `--prefix "CLRS "` will result in output files named `CLRS <outline element>.pdf`.
 
-#### Figure 1: Different levels of depth in a PDF outline
+### Figure 1: Different levels of depth in a PDF outline
 
 <img src="toc_image.png" style="max-width: 90%; display: block; margin-left: auto; margin-right: auto">
 
-### License
+## License
 
 Licensed under AGPL.
