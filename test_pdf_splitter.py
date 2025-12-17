@@ -1,4 +1,5 @@
 import unittest
+
 import pdf_splitter
 
 test_toc = [
@@ -21,12 +22,6 @@ test_toc = [
 
 
 class TestPdfSplitter(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
     def test_get_n_levels(self):
         result_1 = pdf_splitter.get_n_levels(test_toc, 2)
         self.assertEqual(len(result_1), 13)
@@ -40,8 +35,7 @@ class TestPdfSplitter(unittest.TestCase):
     def test_get_page_ranges(self):
         page_count = len(test_toc)
 
-        page_ranges_1 = pdf_splitter.get_page_ranges(
-            test_toc, 1, False, page_count)
+        page_ranges_1 = pdf_splitter.get_page_ranges(test_toc, 1, False, page_count)
         self.assertEqual(page_ranges_1[0]["name"], "Copyright")
         self.assertEqual(page_ranges_1[1]["page_range"][0], 2)
         self.assertEqual(page_ranges_1[1]["page_range"][1], 2)
@@ -60,8 +54,7 @@ class TestPdfSplitter(unittest.TestCase):
 
         self.assertEqual(len(page_ranges_1), 6)
 
-        page_ranges_2 = pdf_splitter.get_page_ranges(
-            test_toc, 2, False, page_count)
+        page_ranges_2 = pdf_splitter.get_page_ranges(test_toc, 2, False, page_count)
         self.assertEqual(page_ranges_2[2]["name"], "Chapter 3")
         self.assertEqual(page_ranges_2[2]["page_range"][0], 6)
         self.assertEqual(page_ranges_2[2]["page_range"][1], 8)
@@ -73,8 +66,7 @@ class TestPdfSplitter(unittest.TestCase):
         self.assertEqual(len(page_ranges_2), 7)
 
         # Overlapping works
-        page_ranges_3 = pdf_splitter.get_page_ranges(
-            test_toc, 2, True, page_count)
+        page_ranges_3 = pdf_splitter.get_page_ranges(test_toc, 2, True, page_count)
         self.assertEqual(page_ranges_3[2]["name"], "Chapter 3")
         self.assertEqual(page_ranges_3[2]["page_range"][0], 6)
         self.assertEqual(page_ranges_3[2]["page_range"][1], 9)
@@ -107,7 +99,8 @@ class TestPdfSplitter(unittest.TestCase):
         page_count = len(unnamed_test_toc)
 
         page_ranges = pdf_splitter.get_page_ranges(
-            unnamed_test_toc, 1, False, page_count)
+            unnamed_test_toc, 1, False, page_count
+        )
         self.assertEqual(page_ranges[0]["name"], "Untitled Section")
         self.assertEqual(page_ranges[1]["name"], "Untitled Section 2")
         self.assertEqual(page_ranges[2]["name"], "Untitled Section 3")
@@ -118,24 +111,20 @@ class TestPdfSplitter(unittest.TestCase):
     def test_filter_by_regex(self):
         page_count = len(test_toc)
 
-        page_ranges_1 = pdf_splitter.get_page_ranges(
-            test_toc, 1, False, page_count)
+        page_ranges_1 = pdf_splitter.get_page_ranges(test_toc, 1, False, page_count)
         self.assertEqual(len(page_ranges_1), 6)
 
         filtered_1 = pdf_splitter.filter_by_regex(page_ranges_1, "^Part")
         self.assertEqual(len(filtered_1), 2)
 
-        page_ranges_2 = pdf_splitter.get_page_ranges(
-            test_toc, 2, False, page_count)
+        page_ranges_2 = pdf_splitter.get_page_ranges(test_toc, 2, False, page_count)
         self.assertEqual(len(page_ranges_2), 7)
 
-        filtered_2 = pdf_splitter.filter_by_regex(
-            page_ranges_2, "^Chapter [123]")
+        filtered_2 = pdf_splitter.filter_by_regex(page_ranges_2, "^Chapter [123]")
         self.assertEqual(len(filtered_2), 3)
 
     def test_safe_filename(self):
-        self.assertEqual(pdf_splitter.safe_filename(
-            "file!@#$*'?`файл"), "fileфайл")
+        self.assertEqual(pdf_splitter.safe_filename("file!@#$*'?`файл"), "fileфайл")
 
 
 if __name__ == "__main__":

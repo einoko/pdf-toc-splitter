@@ -80,7 +80,7 @@ def get_toc(pdf: pypdf.PdfReader) -> List[OutlineItem]:
                     "level": level,
                 }
 
-                if len([item for item in toc_list if item == item_obj]) == 0:
+                if item_obj not in toc_list:
                     toc_list.append(item_obj)
             else:
                 for item in toc:
@@ -98,7 +98,7 @@ class PageRange(TypedDict):
 
 
 def prepare_page_ranges(
-    toc: List[OutlineItem], depth: int, regex: str, overlap: int, page_count: int
+    toc: List[OutlineItem], depth: int, regex: str, overlap: bool, page_count: int
 ) -> List[PageRange]:
     page_ranges = get_page_ranges(toc, depth, overlap, page_count)
 
@@ -122,10 +122,8 @@ def get_page_ranges(
             name = "Untitled Section"
 
         # Handle duplicate outline entries
-        if len([item for item in page_ranges if name is item["name"]]) > 0:
-            name += (
-                f" {len([item for item in page_ranges if name in item['name']]) + 1}"
-            )
+        if any(item["name"] == name for item in page_ranges):
+            name += f" {sum(1 for item in page_ranges if name in item['name']) + 1}"
 
         if item["level"] == depth and i < len(filtered_toc) - 1:
             if overlap:
@@ -167,8 +165,8 @@ def split_pdf(pdf: pypdf.PdfReader, page_ranges: List[PageRange], prefix: str):
         if prefix is not None:
             filename = f"{prefix}{filename}"
 
-        output = open(filename, "wb")
-        pdf_writer.write(output)
+        with open(filename, "wb") as output:
+            pdf_writer.write(output)
 
         print(f"Created file '{filename}'")
 
@@ -194,7 +192,7 @@ def safe_filename(filename: str) -> str:
 
 
 def filter_by_regex(input_list: List[PageRange], regex: str) -> List[PageRange]:
-    return [item for item in input_list if re.search(rf"{regex}", item["name"])]
+    return [item for item in input_list if re.search(regex, item["name"])]
 
 
 def get_n_levels(input_list: List[OutlineItem], level: int) -> List[OutlineItem]:
