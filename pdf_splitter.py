@@ -24,7 +24,7 @@ def main(dry_run: bool, depth: int, regex: str, overlap: bool, prefix: str, file
 
     try:
         pdf = pypdf.PdfReader(file)
-    except:
+    except Exception:
         print("Error: File is not a valid PDF.")
         sys.exit(0)
 
