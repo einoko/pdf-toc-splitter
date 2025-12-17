@@ -20,17 +20,17 @@ import pypdf
 def main(dry_run: bool, depth: int, regex: str, overlap: bool, prefix: str, file: str):
     if not os.path.exists(file):
         print(f"Error: File '{file}' does not exist.")
-        sys.exit(0)
+        sys.exit(1)
 
     try:
         pdf = pypdf.PdfReader(file)
     except Exception:
         print("Error: File is not a valid PDF.")
-        sys.exit(0)
+        sys.exit(1)
 
     if len(pdf.outline) == 0:
         print("Error: File does not contain an outline.")
-        sys.exit(0)
+        sys.exit(1)
 
     toc = get_toc(pdf)
 
