@@ -1,10 +1,11 @@
-import re
 import os
+import re
 import sys
+import unicodedata
 from typing import List, TypedDict
+
 import click
 import pypdf
-import unicodedata
 
 
 @click.command()
@@ -122,8 +123,8 @@ def get_page_ranges(
 
         # Handle duplicate outline entries
         if len([item for item in page_ranges if name is item["name"]]) > 0:
-            name += " {}".format(
-                len([item for item in page_ranges if name in item["name"]]) + 1
+            name += (
+                f" {len([item for item in page_ranges if name in item['name']]) + 1}"
             )
 
         if item["level"] == depth and i < len(filtered_toc) - 1:
@@ -159,8 +160,7 @@ def split_pdf(pdf: pypdf.PdfReader, page_ranges: List[PageRange], prefix: str):
         pdf_writer = pypdf.PdfWriter()
         pdf_writer.append(
             fileobj=pdf,
-            pages=(page_range["page_range"][0],
-                   page_range["page_range"][1] + 1),
+            pages=(page_range["page_range"][0], page_range["page_range"][1] + 1),
         )
 
         filename = f"{safe_filename(page_range['name'])}.pdf"
@@ -182,18 +182,10 @@ def dry_run_toc_split(page_ranges: List[PageRange], prefix: str):
             filename = f"{prefix}{filename}"
 
         if item["page_range"][0] == item["page_range"][1]:
-            print(
-                "– {}.pdf (contains page {})".format(
-                    filename, item["page_range"][0] + 1
-                )
-            )
+            print(f"– {filename}.pdf (contains page {item['page_range'][0] + 1})")
         else:
             print(
-                "– {}.pdf (contains pages {}–{})".format(
-                    filename,
-                    item["page_range"][0] + 1,
-                    item["page_range"][1] + 1,
-                )
+                f"– {filename}.pdf (contains pages {item['page_range'][0] + 1}–{item['page_range'][1] + 1})"
             )
 
 
@@ -202,7 +194,7 @@ def safe_filename(filename: str) -> str:
 
 
 def filter_by_regex(input_list: List[PageRange], regex: str) -> List[PageRange]:
-    return [item for item in input_list if re.search(r"{}".format(regex), item["name"])]
+    return [item for item in input_list if re.search(rf"{regex}", item["name"])]
 
 
 def get_n_levels(input_list: List[OutlineItem], level: int) -> List[OutlineItem]:
