@@ -63,7 +63,7 @@ def get_toc(pdf: pypdf.PdfReader) -> List[OutlineItem]:
 
     def extract_toc(toc, level=1):
         for item in toc:
-            if type(item) != list:
+            if not isinstance(item, list):
                 if item["/Title"] is None:
                     continue
 
