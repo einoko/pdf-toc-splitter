@@ -15,7 +15,11 @@ import pypdf
     "--regex", nargs=1, help="Select outline items that match a RegEx pattern"
 )
 @click.option("--overlap", is_flag=True, help="Overlap split points")
-@click.option("--prefix", nargs=1, help="Filename prefix")
+@click.option(
+    "--prefix",
+    nargs=1,
+    help="Filename prefix. Supports the {n} placeholder for an n-th item index.",
+)
 @click.argument("file")
 def main(dry_run: bool, depth: int, regex: str, overlap: bool, prefix: str, file: str):
     if not os.path.exists(file):
@@ -43,9 +47,6 @@ def main(dry_run: bool, depth: int, regex: str, overlap: bool, prefix: str, file
         else:
             print("No outline items match the current depth or RegEx.")
     else:
-        if prefix is not None:
-            prefix = safe_filename(prefix)
-
         if dry_run is True:
             dry_run_toc_split(page_ranges, prefix)
         else:
@@ -154,7 +155,8 @@ def get_page_ranges(
 
 
 def split_pdf(pdf: pypdf.PdfReader, page_ranges: List[PageRange], prefix: str):
-    for page_range in page_ranges:
+    width = len(str(len(page_ranges)))
+    for i, page_range in enumerate(page_ranges):
         pdf_writer = pypdf.PdfWriter()
         pdf_writer.append(
             fileobj=pdf,
@@ -162,8 +164,12 @@ def split_pdf(pdf: pypdf.PdfReader, page_ranges: List[PageRange], prefix: str):
         )
 
         filename = f"{safe_filename(page_range['name'])}.pdf"
-        if prefix is not None:
-            filename = f"{prefix}{filename}"
+        if prefix:
+            if "{n}" in prefix:
+                formatted_prefix = prefix.replace("{n}", f"{i + 1:0{width}d}")
+                filename = f"{safe_filename(formatted_prefix)}{filename}"
+            else:
+                filename = f"{safe_filename(prefix)}{filename}"
 
         with open(filename, "wb") as output:
             pdf_writer.write(output)
@@ -174,10 +180,16 @@ def split_pdf(pdf: pypdf.PdfReader, page_ranges: List[PageRange], prefix: str):
 def dry_run_toc_split(page_ranges: List[PageRange], prefix: str):
     print("With current options, the following PDF files would be created.\n")
 
-    for item in page_ranges:
+    width = len(str(len(page_ranges)))
+    for i, item in enumerate(page_ranges):
         filename = safe_filename(item["name"])
-        if prefix is not None:
-            filename = f"{prefix}{filename}"
+
+        if prefix:
+            if "{n}" in prefix:
+                formatted_prefix = prefix.replace("{n}", f"{i + 1:0{width}d}")
+                filename = f"{safe_filename(formatted_prefix)}{filename}"
+            else:
+                filename = f"{safe_filename(prefix)}{filename}"
 
         if item["page_range"][0] == item["page_range"][1]:
             print(f"– {filename}.pdf (contains page {item['page_range'][0] + 1})")
