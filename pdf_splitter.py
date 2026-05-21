@@ -212,6 +212,7 @@ def shorten_filename_if_required(filename: str, file_name_max_len: int = 25) -> 
     modified_file_name = filename
     if len(modified_file_name) > file_name_max_len:
         basename, ext = os.path.splitext(modified_file_name)
+        basename = basename.strip()
         modified_file_name = basename[:(file_name_max_len - len(ext))] + ext
     return modified_file_name
 
