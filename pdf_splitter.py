@@ -194,12 +194,12 @@ def dry_run_toc_split(page_ranges: List[PageRange], prefix: str,  maximum_file_n
             else:
                 filename = f"{safe_filename(prefix)}{filename}"
 
-        filename = shorten_filename_if_required(filename, maximum_file_name_length)
+        filename = shorten_filename_if_required(filename + ".pdf", maximum_file_name_length)
         if item["page_range"][0] == item["page_range"][1]:
-            print(f"– {filename}.pdf (contains page {item['page_range'][0] + 1})")
+            print(f"– {filename} (contains page {item['page_range'][0] + 1})")
         else:
             print(
-                f"– {filename}.pdf (contains pages {item['page_range'][0] + 1}–{item['page_range'][1] + 1})"
+                f"– {filename} (contains pages {item['page_range'][0] + 1}–{item['page_range'][1] + 1})"
             )
 
 
