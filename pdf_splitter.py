@@ -11,6 +11,8 @@ import pypdf
 @click.command()
 @click.option("--dry-run", is_flag=True, help="Simulate a split")
 @click.option("--depth", nargs=1, default=1, show_default=True, help="Split depth")
+@click.option("--max-filename-length", nargs=1 , default=0, show_default=True,
+              help="Maximum filename length. The default 0 indicates no limit.")
 @click.option(
     "--regex", nargs=1, help="Select outline items that match a RegEx pattern"
 )
@@ -21,7 +23,7 @@ import pypdf
     help="Filename prefix. Supports the {n} placeholder for an n-th item index.",
 )
 @click.argument("file")
-def main(dry_run: bool, depth: int, regex: str, overlap: bool, prefix: str, file: str):
+def main(dry_run: bool, depth: int, max_filename_length: int, regex: str, overlap: bool, prefix: str, file: str):
     if not os.path.exists(file):
         print(f"Error: File '{file}' does not exist.")
         sys.exit(1)
@@ -48,9 +50,9 @@ def main(dry_run: bool, depth: int, regex: str, overlap: bool, prefix: str, file
             print("No outline items match the current depth or RegEx.")
     else:
         if dry_run is True:
-            dry_run_toc_split(page_ranges, prefix)
+            dry_run_toc_split(page_ranges, prefix, max_filename_length)
         else:
-            split_pdf(pdf, page_ranges, prefix)
+            split_pdf(pdf, page_ranges, prefix, max_filename_length)
 
 
 class OutlineItem(TypedDict):
@@ -154,7 +156,7 @@ def get_page_ranges(
     return page_ranges
 
 
-def split_pdf(pdf: pypdf.PdfReader, page_ranges: List[PageRange], prefix: str):
+def split_pdf(pdf: pypdf.PdfReader, page_ranges: List[PageRange], prefix: str, maximum_file_name_length: int):
     width = len(str(len(page_ranges)))
     for i, page_range in enumerate(page_ranges):
         pdf_writer = pypdf.PdfWriter()
@@ -171,13 +173,14 @@ def split_pdf(pdf: pypdf.PdfReader, page_ranges: List[PageRange], prefix: str):
             else:
                 filename = f"{safe_filename(prefix)}{filename}"
 
+        filename = shorten_filename_if_required(filename, maximum_file_name_length)
         with open(filename, "wb") as output:
             pdf_writer.write(output)
 
         print(f"Created file '{filename}'")
 
 
-def dry_run_toc_split(page_ranges: List[PageRange], prefix: str):
+def dry_run_toc_split(page_ranges: List[PageRange], prefix: str,  maximum_file_name_length: int):
     print("With current options, the following PDF files would be created.\n")
 
     width = len(str(len(page_ranges)))
@@ -191,16 +194,26 @@ def dry_run_toc_split(page_ranges: List[PageRange], prefix: str):
             else:
                 filename = f"{safe_filename(prefix)}{filename}"
 
+        filename = shorten_filename_if_required(filename + ".pdf", maximum_file_name_length)
         if item["page_range"][0] == item["page_range"][1]:
-            print(f"– {filename}.pdf (contains page {item['page_range'][0] + 1})")
+            print(f"– {filename} (contains page {item['page_range'][0] + 1})")
         else:
             print(
-                f"– {filename}.pdf (contains pages {item['page_range'][0] + 1}–{item['page_range'][1] + 1})"
+                f"– {filename} (contains pages {item['page_range'][0] + 1}–{item['page_range'][1] + 1})"
             )
 
 
 def safe_filename(filename: str) -> str:
     return "".join(c for c in filename if c.isalnum() or c in (" ", ".", "_", "-"))
+
+def shorten_filename_if_required(filename: str, file_name_max_len: int = 25) -> str:
+    if file_name_max_len == 0:
+        return filename
+    modified_file_name = filename
+    if len(modified_file_name) > file_name_max_len:
+        basename, ext = os.path.splitext(modified_file_name)
+        modified_file_name = basename[:(file_name_max_len - len(ext))].rstrip() + ext
+    return modified_file_name
 
 
 def filter_by_regex(input_list: List[PageRange], regex: str) -> List[PageRange]:
