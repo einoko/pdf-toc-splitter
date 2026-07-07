@@ -1,4 +1,8 @@
 /.idea
+/.ruff_cache
+/.venv
 /__pycache__
+*.egg-info/
+.DS_Store
 venv
 *.pdf
