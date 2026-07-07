@@ -6,16 +6,18 @@ Command line tool that splits a PDF file by its table of contents. Written in Py
 
 ## Installation
 
-First, make sure you have the required libraries installed.
+Install the project and its development tools with [uv](https://docs.astral.sh/uv/):
 
 ```bash
-pip install -r requirements.txt
+uv sync
 ```
+
+Run the tests with `make test`, and format the Python files with `make format`.
 
 ## Splitting a PDF
 
 ```bash
-python pdf_splitter.py <OPTIONS> file.pdf
+uv run pdf-toc-splitter <OPTIONS> file.pdf
 ```
 
 There are six options:

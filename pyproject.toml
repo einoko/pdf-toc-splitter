@@ -1,0 +1,30 @@
+[project]
+name = "pdf-toc-splitter"
+version = "0.1.0"
+description = "Split a PDF file by its table of contents"
+readme = "README.md"
+license = "AGPL-3.0-only"
+requires-python = ">=3.10"
+dependencies = [
+    "click>=8.4,<9",
+    "pypdf[crypto]>=6.14,<7",
+]
+
+[project.scripts]
+pdf-toc-splitter = "pdf_splitter:main"
+
+[dependency-groups]
+dev = [
+    "ruff",
+]
+
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["pdf_splitter"]
+
+[tool.ruff]
+target-version = "py310"
+
